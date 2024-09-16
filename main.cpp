@@ -6,145 +6,153 @@
 using namespace std;
 
 // Function prototypes
-void displayBoard(char board[3][3]);
-bool checkWin(char board[3][3], char player);
-bool checkDraw(char board[3][3]);
-void playerMove(char board[3][3], vector<int>& x, vector<int>& y, vector<int>& x_p, vector<int>& y_p);
-void cpuMove(char board[3][3], vector<int>& x, vector<int>& y, vector<int>& x_c, vector<int>& y_c);
+void displayBoard(char board[3][3]); // disp board
+bool checkWin(char board[3][3], char player); // check win
+bool checkDraw(char board[3][3]); // check draw
+void playerMove(char board[3][3], vector<int>& x, vector<int>& y, vector<int>& x_p, vector<int>& y_p); // player move
+void cpuMove(char board[3][3], vector<int>& x, vector<int>& y, vector<int>& x_c, vector<int>& y_c); // cpu move
 
 int main() {
+    // Init board
     char board[3][3] = {
         {'1', '2', '3'},
         {'4', '5', '6'},
         {'7', '8', '9'}
     };
 
-    // all possible positions stored in vectors
+    // vec for pos board
     vector<int> x = {0, 0, 0, 1, 1, 1, 2, 2, 2};
     vector<int> y = {0, 1, 2, 0, 1, 2, 0, 1, 2};
 
-    // vectors to write the position for player and cpu 
-    vector<int> x_p, y_p; // Player 
-    vector<int> x_c, y_c; // CPU 
+    // vec for player and cpu move
+    vector<int> x_p, y_p;    
+    vector<int> x_c, y_c;
 
-    char currentPlayer = 'X'; // player is x, cpu is o
-    bool gameWon = false; //boolean var for if game is won or drawn, initially set as false
-    bool gameDraw = false;
+    char currentPlayer = 'X';
+    bool gameWon = false; // bool for win
+    bool gameDraw = false; // bool for draw
 
-    srand(time(0)); // randomly generate cpu
+    srand(time(0)); // rng for cpu move
 
+    // loop until win || draw
     while (!gameWon && !gameDraw) {
-        displayBoard(board);
+        displayBoard(board); // disp current board
 
         if (currentPlayer == 'X') {
-            playerMove(board, x, y, x_p, y_p); // Player move
-            gameWon = checkWin(board, currentPlayer);
-            currentPlayer = 'O'; // Switch to CPU
+            playerMove(board, x, y, x_p, y_p); // player move
+            gameWon = checkWin(board, currentPlayer); // check if player won
+            currentPlayer = 'O'; // cpu turn
         } else {
-            cpuMove(board, x, y, x_c, y_c); // CPU move
-            gameWon = checkWin(board, 'O');
-            currentPlayer = 'X'; // Switch to Player
+            cpuMove(board, x, y, x_c, y_c); // cpu move
+            gameWon = checkWin(board, 'O'); // Check if cpu won
+            currentPlayer = 'X'; // player turn
         }
 
-        gameDraw = checkDraw(board);
+        gameDraw = checkDraw(board); // Check if draw
     }
 
-    displayBoard(board); // Show the final board state
+    displayBoard(board); // disp board
 
+    // give game(res)
     if (gameWon) {
-        if (currentPlayer == 'O') {
+        if (currentPlayer == 'O') { // If the currentPlayer 'O' player 'X' won
             cout << "Player wins!" << endl;
-        } else {
+        } else { // otherwise cpu won
             cout << "CPU wins!" << endl;
         }
     } else if (gameDraw) {
-        cout << "It's a draw!" << endl;
+        cout << "It's a draw!" << endl; // If gameDraw is true then its a draw
     }
 
-    return 0;
+    return 0; // Exit with 0
 }
 
-// Display the board
+// disp current board
 void displayBoard(char board[3][3]) {
-    cout << "-------------" << endl;
+    cout << "-------------" << endl; //board frame
     for (int i = 0; i < 3; i++) {
         cout << "| ";
         for (int j = 0; j < 3; j++) {
-            cout << board[i][j] << " | ";
+            cout << board[i][j] << " | "; // disp each board(cell)
         }
-        cout << endl << "-------------" << endl;
+        cout << endl << "-------------" << endl; //separate rows
     }
 }
 
-// Player move function
+// player moves
 void playerMove(char board[3][3], vector<int>& x, vector<int>& y, vector<int>& x_p, vector<int>& y_p) {
     int choice;
     cout << "Enter the number of the cell where you'd like to place X: ";
     cin >> choice;
 
-    int xi = (choice - 1) / 3; // Get the x position
-    int yi = (choice - 1) % 3; // Get the y position
+    // find board coords (xi,yi) from user inp
+    int xi = (choice - 1) / 3; // row
+    int yi = (choice - 1) % 3; // column
 
+    // if spot is free
     if (board[xi][yi] != 'X' && board[xi][yi] != 'O') {
-        board[xi][yi] = 'X'; // Place player's move
-        x_p.push_back(xi); // Store player move in x_p, y_p
-        y_p.push_back(yi);
+        board[xi][yi] = 'X'; // put x on board
+        x_p.push_back(xi); // store move x
+        y_p.push_back(yi); // store move y
 
-        // Remove the position from available positions
+        // rm selection from possible pos
         for (int i = 0; i < x.size(); i++) {
             if (x[i] == xi && y[i] == yi) {
                 x.erase(x.begin() + i);
                 y.erase(y.begin() + i);
-                break;
+                break; // Exit the loop after rm
             }
         }
     } else {
+        // If the move is invalid ask for new inp
         cout << "Invalid move! Try again." << endl;
-        playerMove(board, x, y, x_p, y_p); // Re-prompt for move
+        playerMove(board, x, y, x_p, y_p); // recurse until inp = valid move 
     }
 }
 
-// CPU move function (random selection from available positions)
+// cpu moves
 void cpuMove(char board[3][3], vector<int>& x, vector<int>& y, vector<int>& x_c, vector<int>& y_c) {
-    if (x.empty()) return; // No moves left
+    if (x.empty()) return; // do nothing if nothing can be done
 
-    int randIndex = rand() % x.size(); // Pick a random available position
-    int xi = x[randIndex];
-    int yi = y[randIndex];
+    int randIndex = rand() % x.size(); // rand find move
+    int xi = x[randIndex]; // get x of move
+    int yi = y[randIndex]; // get y of move
 
-    board[xi][yi] = 'O'; // Place CPU's move
-    x_c.push_back(xi); // Store CPU move in x_c, y_c
-    y_c.push_back(yi);
+    board[xi][yi] = 'O'; // put o on board
+    x_c.push_back(xi); // store move x
+    y_c.push_back(yi); // store move y
 
-    // Remove the position from available positions
+    // rm move from all possible moves
     x.erase(x.begin() + randIndex);
     y.erase(y.begin() + randIndex);
 }
 
-// Check if the current player has won
+// check if player won
 bool checkWin(char board[3][3], char player) {
-    // Check rows, columns, and diagonals
+    // check win cond
     for (int i = 0; i < 3; i++) {
-        if ((board[i][0] == player && board[i][1] == player && board[i][2] == player) || // Rows
-            (board[0][i] == player && board[1][i] == player && board[2][i] == player)) {  // Columns
-            return true;
+        if ((board[i][0] == player && board[i][1] == player && board[i][2] == player) || // check row i
+            (board[0][i] == player && board[1][i] == player && board[2][i] == player)) {  // check column i
+            return true; // player win
         }
     }
-    if ((board[0][0] == player && board[1][1] == player && board[2][2] == player) || // Diagonal 1
-        (board[0][2] == player && board[1][1] == player && board[2][0] == player)) {  // Diagonal 2
-        return true;
+    // check diagonals for a win condition
+    if ((board[0][0] == player && board[1][1] == player && board[2][2] == player) || // main diagonal
+        (board[0][2] == player && board[1][1] == player && board[2][0] == player)) {  // anti-diagonal
+        return true; // player win
     }
-    return false;
+    return false; // no win
 }
 
-// Check if the game is a draw (no empty spaces left)
+// check draw
 bool checkDraw(char board[3][3]) {
+    // loop thru all cells
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             if (board[i][j] != 'X' && board[i][j] != 'O') {
-                return false; // Empty spot found
+                return false; // if empty cell, != draw
             }
         }
     }
-    return true; // No empty spots, it's a draw
+    return true; // no empty cell, = draw
 }
