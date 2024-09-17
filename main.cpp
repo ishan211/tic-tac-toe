@@ -1,3 +1,13 @@
+/* 
+Tic Tac Toe By Ishan Leung
+
+Implemented in C++
+
+Using: iostream, vector, cstdlib, ctime
+*/
+
+
+
 #include <iostream>
 #include <vector>
 #include <cstdlib>
